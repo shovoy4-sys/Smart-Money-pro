@@ -8,12 +8,11 @@
     <!-- Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Ad Networks -->
-    <script src="https://cdn.adsgram.ai/js/adsgram.js"></script> 
-    <script src='//libtl.com/sdk.js' data-zone='9730885' data-sdk='show_9730885'></script>
-    <script src='//libtl.com/sdk.js' data-zone='9500387' data-sdk='show_9500387'></script>
-    <script src='//libtl.com/sdk.js' data-zone='9715370' data-sdk='show_9715370'></script>
-    <script src="https://ad.gigapub.tech/script?id=6316"></script>
+    <!-- Ad Networks (Adsgram বাদ) -->
+    <script src='//libtl.com/sdk.js' data-zone='9730885' data-sdk='show_9730885' async></script>
+    <script src='//libtl.com/sdk.js' data-zone='9500387' data-sdk='show_9500387' async></script>
+    <script src='//libtl.com/sdk.js' data-zone='9715370' data-sdk='show_9715370' async></script>
+    <script src="https://ad.gigapub.tech/script?id=6316" async></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,7 +26,10 @@
             background: linear-gradient(145deg, #f0f9ff 0%, #e6f0fa 100%);
             color: #0a2540;
             padding-bottom: 75px;
+            opacity: 0;
+            animation: fadeIn 0.4s ease forwards;
         }
+        @keyframes fadeIn { to { opacity: 1; } }
         .dark-mode {
             background: linear-gradient(145deg, #0f172a 0%, #111827 100%);
             color: #e2e8f0;
@@ -63,6 +65,7 @@
             transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
         .btn-premium:active { transform: scale(0.96); box-shadow: 0 4px 12px -4px rgba(249, 115, 22, 0.5); }
+        .btn-premium:disabled { opacity: 0.6; transform: scale(0.98); pointer-events: none; }
         .gradient-text {
             background: linear-gradient(135deg, #f97316, #facc15);
             -webkit-background-clip: text;
@@ -132,16 +135,99 @@
             cursor: wait !important;
             opacity: 0.7;
         }
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.4s ease;
+        }
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader-box {
+            background: white;
+            padding: 30px;
+            border-radius: 28px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        .dark-mode .loader-box {
+            background: #1e293b;
+        }
+        .loader-spinner {
+            width: 56px;
+            height: 56px;
+            border: 5px solid #f97316;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .reward-coin {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 80px;
+            z-index: 100;
+            pointer-events: none;
+            animation: coinPop 0.8s ease forwards;
+        }
+        @keyframes coinPop {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 1; }
+            50% { transform: translate(-50%, -70%) scale(1.5) rotate(10deg); opacity: 1; }
+            100% { transform: translate(-50%, -100%) scale(1) rotate(0deg); opacity: 0; }
+        }
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideDown 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        .dark-mode .toast-notification { background: #0f172a; border: 1px solid #334155; }
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        .toast-notification.success { border-left: 5px solid #22c55e; }
+        .toast-notification.error { border-left: 5px solid #ef4444; }
     </style>
 </head>
 <body class="max-w-md mx-auto relative">
 
-    <div id="loader" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+    <!-- ✅ Improved Loader -->
+    <div id="loader">
+        <div class="loader-box">
+            <div class="loader-spinner"></div>
+            <p class="text-lg font-bold mt-4 text-gray-800 dark:text-white">স্মার্ট মানি প্রো</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">লোড হচ্ছে...</p>
+            <div class="mt-3 h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div id="loader-progress" class="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
     </div>
 
     <div id="app-container" class="min-h-screen flex flex-col main-page active">
-        <!-- Premium Header with Support Button -->
+        <!-- Premium Header -->
         <header class="px-5 pt-6 pb-3 sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-white/40 dark:border-gray-800/40">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -173,7 +259,7 @@
                 <div>
                     <div class="flex justify-between items-center mb-3"><h2 class="font-bold text-xl">Daily Earn</h2><span class="text-xs bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">Ads left: <span id="ads-left-count">0/10</span></span></div>
                     <div class="space-y-3">
-                        <div id="adsgram-task-card" class="hidden"></div>
+                        <!-- Adsgram সরানো হয়েছে -->
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">🚀</span><div><h3 class="font-bold">GigaPub Ad</h3><p class="text-xs text-gray-500">Earn ৳10</p><p class="text-[10px]">Today: <span id="gigapub-left-count">0/10</span></p></div></div><button id="gigapub-ad-btn" class="btn-premium px-5 py-2 rounded-full text-white text-sm font-semibold shadow-md">Watch</button></div>
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">🎯</span><div><h3 class="font-bold">Monetag Ad</h3><p class="text-xs text-gray-500">Earn ৳10</p><span id="zone-indicator" class="text-[10px] bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded-full">Zone 1/3</span></div></div><button id="monetag-ad-btn" class="btn-premium px-5 py-2 rounded-full text-white text-sm font-semibold">Watch</button></div>
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">💼</span><div><h3 class="font-bold">Daily Jobs</h3><p class="text-xs text-gray-500">20 jobs • ৳15 each</p><p class="text-[10px] text-orange-500 font-medium">⏱️ 15 sec timer → auto reward</p></div></div><button class="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-semibold dark:bg-white dark:text-black" onclick="navigateTo('daily-jobs-page')">Start →</button></div>
@@ -198,7 +284,7 @@
                 <div><h3 class="font-bold mb-2">History</h3><div id="withdrawal-history-list" class="space-y-2"></div></div>
             </div>
 
-            <!-- JOBS PAGE - FIXED TIMER SYSTEM -->
+            <!-- JOBS PAGE -->
             <div id="daily-jobs-page" class="sub-page space-y-4">
                 <div class="flex items-center gap-3"><button onclick="navigateTo('home-page')" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-2xl font-bold">Daily Jobs</h2></div>
                 <div class="card-modern p-4 text-center"><p class="text-sm">✅ Click any job → <span class="font-bold text-orange-600">15 seconds timer</span> → <span class="font-bold text-green-600">Auto +৳15</span></p><div class="flex justify-center gap-3 text-xs mt-2"><span class="text-green-600">● Available</span><span class="text-red-500">● 8h cooldown</span></div></div>
@@ -220,11 +306,124 @@
 
     <div id="custom-alert" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"><div class="bg-white dark:bg-gray-800 rounded-3xl p-6 w-full max-w-sm text-center"><p id="alert-message" class="mb-4"></p><button id="alert-ok-btn" class="btn-premium px-6 py-2 rounded-full">OK</button></div></div>
 
+    <!-- ✅ Audio Context for Sound Effects -->
     <script>
-        // ========== CONFIG ==========
+    // সাউন্ড ইফেক্ট সিস্টেম - Web Audio API ব্যবহার করে
+    class SoundFX {
+        constructor() {
+            this.ctx = null;
+            this.initialized = false;
+        }
+        
+        init() {
+            if (this.initialized) return;
+            try {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.initialized = true;
+            } catch(e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        playDrop() {
+            this.init();
+            if (!this.ctx) return;
+            
+            try {
+                // কয়েন ড্রপ সাউন্ড - 3 টোনের সিকোয়েন্স
+                const notes = [800, 1000, 1200];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.08 + 0.15);
+                    osc.start(this.ctx.currentTime + i * 0.08);
+                    osc.stop(this.ctx.currentTime + i * 0.08 + 0.15);
+                });
+                
+                // অতিরিক্ত ড্রপ ইফেক্ট
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(this.ctx.destination);
+                osc2.frequency.value = 600;
+                osc2.type = 'square';
+                gain2.gain.setValueAtTime(0.08, this.ctx.currentTime + 0.2);
+                gain2.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+                osc2.start(this.ctx.currentTime + 0.2);
+                osc2.stop(this.ctx.currentTime + 0.35);
+            } catch(e) {
+                // সাইলেন্ট ফেল
+            }
+        }
+        
+        playCoin() {
+            this.init();
+            if (!this.ctx) return;
+            try {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.12);
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+                osc.start(this.ctx.currentTime);
+                osc.stop(this.ctx.currentTime + 0.15);
+            } catch(e) {}
+        }
+    }
+    
+    const sound = new SoundFX();
+    
+    // ✅ টোস্ট নোটিফিকেশন সিস্টেম
+    function showToast(message, type = 'success') {
+        // পুরনো টোস্ট রিমুভ
+        const old = document.querySelector('.toast-notification');
+        if (old) old.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 3 সেকেন্ড পর রিমুভ
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.4s';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+    
+    // ✅ রিওয়ার্ড কয়েন অ্যানিমেশন
+    function showCoinAnimation() {
+        const el = document.createElement('div');
+        el.className = 'reward-coin';
+        el.textContent = '🪙';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 900);
+    }
+    
+    // ✅ রিওয়ার্ড দেওয়ার ফাংশন - সাউন্ড + অ্যানিমেশন + টোস্ট
+    function giveReward(amount, message) {
+        sound.playDrop();
+        showCoinAnimation();
+        setTimeout(() => {
+            showToast(`+৳${amount} ${message || ''}`, 'success');
+        }, 200);
+    }
+    </script>
+
+    <script>
+        // ========== CONFIG (Adsgram বাদ) ==========
         const CONFIG = {
-            app: { minWithdrawal: 2000, dailyAdLimit: { adsgram: 0, monetag: 30, gigapub: 10 }, adReward: 10, dailyJobReward: 15, welcomeBonus: 100, sponsorBonus: 20 },
-            adsgram: { enabled: true, blockId: "int-281৬৬" },
+            app: { minWithdrawal: 2000, dailyAdLimit: { monetag: 30, gigapub: 10 }, adReward: 10, dailyJobReward: 15, welcomeBonus: 100, sponsorBonus: 20 },
             monetag: { enabled: true, zones: ['9730885', '9500387', '9715370'] },
             gigapub: { enabled: true },
             social: { telegram: "https://t.me/+tLB334Ko71tjY2Y1" },
@@ -246,19 +445,21 @@
             }
         };
 
-        let currentUser=null, userData=null, gigapubCount=0, monetagCount=0, adsGramCount=0, currentZoneIndex=0, isGigaPubShowing=false, isMonetagShowing=false, adsGramReady=false, AdController=null;
-        let activeTimers = {}; // Store timeouts per job
+        let currentUser=null, userData=null, gigapubCount=0, monetagCount=0, currentZoneIndex=0, isGigaPubShowing=false, isMonetagShowing=false;
+        let activeTimers = {};
+        let sponsorTimers = {};
+        let adsGramRetries = 0;
         const tg = window.Telegram.WebApp;
-        let dailyStats = { date: new Date().toISOString().split('T')[0], newUsers:0, totalUsers:0, adsGramWatched:0, monetagWatched:0, gigapubWatched:0, jobsCompleted:0, sponsorsCompleted:0, totalWithdrawals:0, totalWithdrawalAmount:0, zoneStats:{'9730885':0,'9500387':0,'9715370':0} };
+        let dailyStats = { date: new Date().toISOString().split('T')[0], newUsers:0, totalUsers:0, monetagWatched:0, gigapubWatched:0, jobsCompleted:0, sponsorsCompleted:0, totalWithdrawals:0, totalWithdrawalAmount:0, zoneStats:{'9730885':0,'9500387':0,'9715370':0} };
         
         function saveUser(data){ localStorage.setItem(`user_${currentUser.id}`, JSON.stringify(data)); }
-        function loadUser(id){ const s=localStorage.getItem(`user_${id}`); return s?JSON.parse(s):null; }
-        function loadWithdrawals(){ return JSON.parse(localStorage.getItem(`withdrawals_${currentUser?.id}`)||'[]'); }
+        function loadUser(id){ try { const s=localStorage.getItem(`user_${id}`); if(!s) return null; const data=JSON.parse(s); if(typeof data.balance !== 'number') data.balance = 0; return data; } catch(e) { localStorage.removeItem(`user_${id}`); return null; } }
+        function loadWithdrawals(){ try { return JSON.parse(localStorage.getItem(`withdrawals_${currentUser?.id}`)||'[]'); } catch(e){ return []; } }
         function saveWithdrawal(w){ const arr=loadWithdrawals(); arr.push(w); localStorage.setItem(`withdrawals_${currentUser.id}`,JSON.stringify(arr)); dailyStats.totalWithdrawals++; dailyStats.totalWithdrawalAmount+=w.amount; saveDailyStats(); }
-        function loadDailyJobs(){ return JSON.parse(localStorage.getItem(`daily_jobs_${currentUser?.id}`)||'[]'); }
+        function loadDailyJobs(){ try { return JSON.parse(localStorage.getItem(`daily_jobs_${currentUser?.id}`)||'[]'); } catch(e){ return []; } }
         function saveDailyJob(job){ const jobs=loadDailyJobs(); jobs.push(job); localStorage.setItem(`daily_jobs_${currentUser.id}`,JSON.stringify(jobs)); dailyStats.jobsCompleted++; saveDailyStats(); }
         function saveDailyStats(){ localStorage.setItem(`stats_${dailyStats.date}`,JSON.stringify(dailyStats)); }
-        function loadDailyStats(){ const today=new Date().toISOString().split('T')[0]; const saved=localStorage.getItem(`stats_${today}`); if(saved) dailyStats=JSON.parse(saved); else saveDailyStats(); }
+        function loadDailyStats(){ const today=new Date().toISOString().split('T')[0]; const saved=localStorage.getItem(`stats_${today}`); if(saved) { try { dailyStats=JSON.parse(saved); } catch(e){} } else saveDailyStats(); }
         
         function showAlert(msg){ const a=document.getElementById('custom-alert'); document.getElementById('alert-message').innerText=msg; a.classList.remove('hidden'); document.getElementById('alert-ok-btn').onclick=()=>a.classList.add('hidden'); }
         function updateUI(){ 
@@ -267,12 +468,12 @@
             document.getElementById('profile-name').innerText=userData.name;
             document.getElementById('profile-username').innerText='@'+userData.username;
             document.getElementById('profile-user-id').innerText=currentUser.id;
-            document.getElementById('ads-left-count').innerText=`${adsGramCount}/10`;
+            document.getElementById('ads-left-count').innerText=`${monetagCount}/10`;
         }
         function navigateTo(pageId){ document.querySelectorAll('.sub-page').forEach(p=>p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active','text-accent')); const link=document.querySelector(`.nav-link[data-page="${pageId}"]`); if(link) link.classList.add('active','text-accent'); if(pageId==='wallet-page') loadHistory(); if(pageId==='daily-jobs-page'){ renderJobs(); updateJobButtons(); } if(pageId==='sponsor-page') renderSponsors(); }
         function loadHistory(){ const w=loadWithdrawals(); const cont=document.getElementById('withdrawal-history-list'); if(w.length===0) cont.innerHTML='<p class="text-center text-gray-500">No withdrawals</p>'; else cont.innerHTML=w.reverse().map(r=>`<div class="card-modern p-3 flex justify-between"><div><b>৳${r.amount}</b> ${r.method}<div class="text-xs">${new Date(r.requestedAt).toLocaleDateString()}</div></div><span class="text-${r.status==='pending'?'yellow-500':'green-500'}">${r.status}</span></div>`).join(''); }
         
-        // ========== FIXED JOB TIMER SYSTEM ==========
+        // ========== JOBS ==========
         function renderJobs(){ 
             const container=document.getElementById('daily-jobs-container'); 
             container.innerHTML=''; 
@@ -292,7 +493,6 @@
             for(let i=1;i<=20;i++){ 
                 const btn=document.getElementById(`job-btn-${i}`); 
                 if(!btn) continue;
-                // ✅ Skip buttons with active countdown timers
                 if(activeTimers[i] && activeTimers[i].countdown) continue;
                 const lastTime=cooldownMap[i]; 
                 if(lastTime && (Date.now()-lastTime) < 8*3600000){ 
@@ -319,17 +519,14 @@
             const link = btn.getAttribute('data-link');
             if(!link) return showAlert("Invalid job link");
 
-            // Check cooldown before starting
             const completed = loadDailyJobs();
             const lastCompletion = completed.filter(j=>j.jobId===jobId).sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt))[0];
             if(lastCompletion && (Date.now()-new Date(lastCompletion.completedAt).getTime()) < 8*3600000){
                 return showAlert("⏳ Job কুলডাউনে আছে! ৮ ঘণ্টা পর আবার করুন।");
             }
             
-            // Open the ad link
             tg.openLink(link);
             
-            // Disable button and start visual countdown
             btn.disabled = true;
             btn.classList.add('timer-active-btn');
             btn.style.background = "#6b7280";
@@ -337,7 +534,6 @@
             let secondsLeft = 15;
             btn.innerText = `⏳ ${secondsLeft}s`;
             
-            // Visual countdown every second
             activeTimers[jobId] = {};
             activeTimers[jobId].countdown = setInterval(() => {
                 secondsLeft--;
@@ -355,7 +551,6 @@
             const btn = document.getElementById(`job-btn-${jobId}`);
             if(!btn) return;
             
-            // Final cooldown check
             const completed = loadDailyJobs();
             const lastCompletion = completed.filter(j=>j.jobId===jobId).sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt))[0];
             if(lastCompletion && (Date.now()-new Date(lastCompletion.completedAt).getTime()) < 8*3600000){
@@ -364,20 +559,15 @@
                 return;
             }
             
-            // ✅ Add reward to balance
             saveDailyJob({ userId: currentUser.id, jobId: jobId, completedAt: new Date().toISOString() });
             userData.balance += CONFIG.app.dailyJobReward;
             saveUser(userData);
             updateUI();
             updateJobButtons();
-            showAlert(`✅ +৳${CONFIG.app.dailyJobReward} আপনার ব্যালেন্সে যোগ হয়েছে! 🎉`);
+            
+            // ✅ রিওয়ার্ড ইফেক্ট
+            giveReward(CONFIG.app.dailyJobReward, 'জব সম্পন্ন! 🎉');
         }
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload',()=>{ 
-            for(let id in activeTimers){ if(activeTimers[id].countdown) clearInterval(activeTimers[id].countdown); }
-            for(let id in sponsorTimers){ clearInterval(sponsorTimers[id]); }
-        });
         
         // ========== SPONSOR ==========
         function renderSponsors(){ 
@@ -390,23 +580,17 @@
             }
             document.querySelectorAll('.sponsor-join-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=parseInt(btn.dataset.id); handleSponsorJoin(id); }));
         }
-        function getSponsorStatus(id){ const data=localStorage.getItem(`sponsor_${currentUser?.id}_${id}`); if(!data) return {completed:false,cooldown:0}; const d=JSON.parse(data); const elapsed=Date.now()-new Date(d.completedAt).getTime(); if(elapsed<24*3600000) return {completed:true,cooldown:24*3600000-elapsed}; localStorage.removeItem(`sponsor_${currentUser.id}_${id}`); return {completed:false,cooldown:0}; }
+        function getSponsorStatus(id){ const data=localStorage.getItem(`sponsor_${currentUser?.id}_${id}`); if(!data) return {completed:false,cooldown:0}; try { const d=JSON.parse(data); const elapsed=Date.now()-new Date(d.completedAt).getTime(); if(elapsed<24*3600000) return {completed:true,cooldown:24*3600000-elapsed}; localStorage.removeItem(`sponsor_${currentUser.id}_${id}`); return {completed:false,cooldown:0}; } catch(e){ return {completed:false,cooldown:0}; } }
         function formatTime(ms){ const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000); return `${h}h ${m}m`; }
-        
-        let sponsorTimers = {}; // Track sponsor countdown timers
         
         function handleSponsorJoin(id){
             const s = CONFIG.sponsorButtons[`sponsor${id}`];
             const status = getSponsorStatus(id);
             if(status.completed) return showAlert("⏳ ইতিমধ্যে করা হয়েছে! ২৪ ঘণ্টা পর আবার করুন।");
-            
-            // Check if timer already running
             if(sponsorTimers[id]) return showAlert("⏳ টাইমার ইতিমধ্যে চলছে!");
             
-            // Open sponsor link
             tg.openLink(s.link);
             
-            // Find the button and start visual countdown
             const btn = document.querySelector(`.sponsor-join-btn[data-id="${id}"]`);
             if(btn){
                 btn.disabled = true;
@@ -431,18 +615,17 @@
         
         function completeSponsorReward(id){
             const s = CONFIG.sponsorButtons[`sponsor${id}`];
-            // ✅ Save sponsor completion
             localStorage.setItem(`sponsor_${currentUser.id}_${id}`, JSON.stringify({completedAt: new Date().toISOString()}));
-            // ✅ Add reward to balance
             userData.balance += s.reward;
             dailyStats.sponsorsCompleted++;
             saveUser(userData);
             saveDailyStats();
             updateUI();
             renderSponsors();
-            showAlert(`✅ +৳${s.reward} স্পন্সর বোনাস আপনার ব্যালেন্সে যোগ হয়েছে! 🎉`);
             
-            // Check if all 5 sponsors completed → extra ৳100 bonus
+            // ✅ রিওয়ার্ড ইফেক্ট
+            giveReward(s.reward, 'স্পন্সর সম্পন্ন! 🎁');
+            
             let completedCount = 0;
             for(let i=1; i<=5; i++){
                 const data = localStorage.getItem(`sponsor_${currentUser.id}_${i}`);
@@ -455,42 +638,229 @@
                     saveUser(userData);
                     updateUI();
                     localStorage.setItem(bonusKey, '1');
-                    setTimeout(()=>showAlert("🎊 অভিনন্দন! ৫টি স্পন্সর সম্পন্ন! +৳100 এক্সট্রা বোনাস পেয়েছেন!"), 1500);
+                    setTimeout(() => {
+                        giveReward(100, '৫টি স্পন্সর সম্পন্ন! এক্সট্রা বোনাস! 🎊');
+                    }, 500);
                 }
             }
         }
         
         // ========== ADS ==========
-        async function claimGigaPubReward(){ if(isGigaPubShowing) return; const today=new Date().toISOString().split('T')[0]; if(gigapubCount>=CONFIG.app.dailyAdLimit.gigapub) return showAlert(`Limit 10/day`); isGigaPubShowing=true; const btn=document.getElementById('gigapub-ad-btn'); btn.innerText='⏳'; btn.disabled=true; try{ if(window.showGiga) await window.showGiga(); else throw new Error(); gigapubCount++; userData.gigapubCount=gigapubCount; userData.lastGigaPubDate=today; userData.balance+=CONFIG.app.adReward; dailyStats.gigapubWatched++; saveUser(userData); saveDailyStats(); updateUI(); document.getElementById('gigapub-left-count').innerText=`${gigapubCount}/10`; showAlert(`+৳10 earned!`); }catch(e){ showAlert("Ad error"); } finally{ isGigaPubShowing=false; btn.innerText='Watch'; btn.disabled=false; } }
-        async function claimMonetagReward(){ if(isMonetagShowing) return; const today=new Date().toISOString().split('T')[0]; if(monetagCount>=CONFIG.app.dailyAdLimit.monetag) return showAlert(`Limit 15/day`); isMonetagShowing=true; const btn=document.getElementById('monetag-ad-btn'); btn.innerText='⏳'; btn.disabled=true; const zone=CONFIG.monetag.zones[currentZoneIndex]; try{ if(window[`show_${zone}`]) await window[`show_${zone}`](); else throw new Error(); monetagCount++; currentZoneIndex=(currentZoneIndex+1)%3; userData.monetagCount=monetagCount; userData.lastMonetagDate=today; userData.balance+=CONFIG.app.adReward; dailyStats.monetagWatched++; saveUser(userData); saveDailyStats(); updateUI(); document.getElementById('zone-indicator').innerHTML=`Zone ${currentZoneIndex+1}/3`; showAlert(`+৳10 earned!`); }catch(e){ showAlert("Ad error"); } finally{ isMonetagShowing=false; btn.innerText='Watch'; btn.disabled=false; } }
-        function initAdsGram(){ if(window.Adsgram){ AdController=window.Adsgram.init({blockId:"int-28196"}); if(AdController?.show) adsGramReady=true; } else setTimeout(initAdsGram,2000); }
+        async function claimGigaPubReward(){ 
+            if(isGigaPubShowing) return; 
+            const today=new Date().toISOString().split('T')[0]; 
+            if(gigapubCount>=CONFIG.app.dailyAdLimit.gigapub) return showAlert(`Limit 10/day`); 
+            isGigaPubShowing=true; 
+            const btn=document.getElementById('gigapub-ad-btn'); 
+            btn.innerText='⏳'; 
+            btn.disabled=true; 
+            try{ 
+                if(window.showGiga) await window.showGiga(); 
+                else throw new Error(); 
+                gigapubCount++; 
+                userData.gigapubCount=gigapubCount; 
+                userData.lastGigaPubDate=today; 
+                userData.balance+=CONFIG.app.adReward; 
+                dailyStats.gigapubWatched++; 
+                saveUser(userData); 
+                saveDailyStats(); 
+                updateUI(); 
+                document.getElementById('gigapub-left-count').innerText=`${gigapubCount}/10`; 
+                giveReward(CONFIG.app.adReward, 'GigaPub অ্যাড দেখা হয়েছে!');
+            }catch(e){ 
+                showAlert("Ad error"); 
+            } finally{ 
+                isGigaPubShowing=false; 
+                btn.innerText='Watch'; 
+                btn.disabled=false; 
+            } 
+        }
+        
+        async function claimMonetagReward(){ 
+            if(isMonetagShowing) return; 
+            const today=new Date().toISOString().split('T')[0]; 
+            if(monetagCount>=CONFIG.app.dailyAdLimit.monetag) return showAlert(`Limit 15/day`); 
+            isMonetagShowing=true; 
+            const btn=document.getElementById('monetag-ad-btn'); 
+            btn.innerText='⏳'; 
+            btn.disabled=true; 
+            const zone=CONFIG.monetag.zones[currentZoneIndex]; 
+            try{ 
+                if(window[`show_${zone}`]) await window[`show_${zone}`](); 
+                else throw new Error(); 
+                monetagCount++; 
+                currentZoneIndex=(currentZoneIndex+1)%3; 
+                userData.monetagCount=monetagCount; 
+                userData.lastMonetagDate=today; 
+                userData.currentZoneIndex=currentZoneIndex;
+                userData.balance+=CONFIG.app.adReward; 
+                dailyStats.monetagWatched++; 
+                saveUser(userData); 
+                saveDailyStats(); 
+                updateUI(); 
+                document.getElementById('zone-indicator').innerHTML=`Zone ${currentZoneIndex+1}/3`;
+                document.getElementById('ads-left-count').innerText=`${monetagCount}/10`;
+                giveReward(CONFIG.app.adReward, 'Monetag অ্যাড দেখা হয়েছে!');
+            }catch(e){ 
+                showAlert("Ad error"); 
+            } finally{ 
+                isMonetagShowing=false; 
+                btn.innerText='Watch'; 
+                btn.disabled=false; 
+            } 
+        }
         
         // ========== WITHDRAW ==========
-        async function handleWithdrawal(){ const amount=parseInt(document.getElementById('withdraw-amount').value); const method=document.getElementById('withdraw-method').value; const payment=document.getElementById('payment-detail-input')?.value; if(!amount||amount<2000) return showAlert(`Min 2000 Taka`); if(amount>userData.balance) return showAlert("Low balance"); if(!method||!payment) return showAlert("Fill all fields"); userData.balance-=amount; saveWithdrawal({userId:currentUser.id,amount,method,paymentDetails:payment,status:"pending",requestedAt:new Date().toISOString()}); saveUser(userData); updateUI(); loadHistory(); showAlert("Withdrawal request submitted!"); document.getElementById('withdraw-amount').value=''; document.getElementById('withdraw-method').value=''; document.getElementById('payment-details-container').innerHTML=''; }
-        function updatePaymentField(){ const m=document.getElementById('withdraw-method').value; const ph=m==='Bkash'?'Bkash Number':m==='Nagad'?'Nagad Number':'Rocket Number'; document.getElementById('payment-details-container').innerHTML=`<input id="payment-detail-input" type="text" placeholder="${ph}" class="input-modern w-full mt-3">`; }
+        async function handleWithdrawal(){ 
+            const amount=parseInt(document.getElementById('withdraw-amount').value); 
+            const method=document.getElementById('withdraw-method').value; 
+            const payment=document.getElementById('payment-detail-input')?.value; 
+            if(!amount||amount<2000) return showAlert(`Min 2000 Taka`); 
+            if(amount>userData.balance) return showAlert("Low balance"); 
+            if(!method||!payment) return showAlert("Fill all fields"); 
+            userData.balance-=amount; 
+            saveWithdrawal({userId:currentUser.id,amount,method,paymentDetails:payment,status:"pending",requestedAt:new Date().toISOString()}); 
+            saveUser(userData); 
+            updateUI(); 
+            loadHistory(); 
+            showAlert("Withdrawal request submitted!"); 
+            document.getElementById('withdraw-amount').value=''; 
+            document.getElementById('withdraw-method').value=''; 
+            document.getElementById('payment-details-container').innerHTML=''; 
+        }
+        function updatePaymentField(){ 
+            const m=document.getElementById('withdraw-method').value; 
+            const ph=m==='Bkash'?'Bkash Number':m==='Nagad'?'Nagad Number':'Rocket Number'; 
+            document.getElementById('payment-details-container').innerHTML=`<input id="payment-detail-input" type="text" placeholder="${ph}" class="input-modern w-full mt-3">`; 
+        }
         
-        // ========== USER INIT (100 WELCOME BONUS + MESSAGE) ==========
-        function initTelegram(){ tg.ready(); tg.expand(); const u=tg.initDataUnsafe.user; if(!u) return; currentUser={id:u.id.toString(), firstName:u.first_name||'User', username:u.username||'user'}; let data=loadUser(currentUser.id); const today=new Date().toISOString().split('T')[0]; const isNew=!data;
+        // ========== USER INIT ==========
+        function continueSetup() {
+            const data = loadUser(currentUser.id);
+            const today = new Date().toISOString().split('T')[0];
+            const isNew = !data;
+            
             if(isNew){ 
-                // ✅ New user gets 100 Taka welcome bonus
                 data={ uid:currentUser.id, name:currentUser.firstName, username:currentUser.username, balance:CONFIG.app.welcomeBonus, adsGramCount:0, monetagCount:0, gigapubCount:0, lastAdsGramDate:today, lastMonetagDate:today, lastGigaPubDate:today, sponsorCount:0, currentZoneIndex:0, welcomeBonusClaimed:true, createdAt:new Date().toISOString() }; 
                 saveUser(data); 
                 dailyStats.newUsers++; 
                 saveDailyStats(); 
-                // Show welcome bonus card
                 const wCard = document.getElementById('welcome-bonus-card');
                 if(wCard) wCard.classList.remove('hidden');
                 setTimeout(()=>{ 
                     showAlert(`🎉 স্মার্ট মানি প্রো তে স্বাগতম, ${data.name}! 🎉\n\n✅ আপনার একাউন্টে ৳100 ওয়েলকাম বোনাস যোগ হয়েছে!\n\nডেইলি জব করুন, অ্যাড দেখুন ও স্পন্সর জয়েন করে আরও আয় করুন।\nমিনিমাম উইথড্র: ২০০০ টাকা।\nশুভকামনা! 💰`); 
+                    giveReward(100, 'ওয়েলকাম বোনাস! 🎉');
                     if(wCard) setTimeout(()=>wCard.classList.add('hidden'), 10000);
                 },400); 
+            } else { 
+                if(data.lastMonetagDate!==today){ data.monetagCount=0; data.lastMonetagDate=today; data.currentZoneIndex=0; } 
+                if(data.lastGigaPubDate!==today){ data.gigapubCount=0; data.lastGigaPubDate=today; } 
+                saveUser(data); 
             }
-            else{ if(data.lastAdsGramDate!==today){ data.adsGramCount=0; data.lastAdsGramDate=today; } if(data.lastMonetagDate!==today){ data.monetagCount=0; data.lastMonetagDate=today; data.currentZoneIndex=0; } if(data.lastGigaPubDate!==today){ data.gigapubCount=0; data.lastGigaPubDate=today; } saveUser(data); }
-            userData=data; gigapubCount=userData.gigapubCount||0; monetagCount=userData.monetagCount||0; adsGramCount=userData.adsGramCount||0; currentZoneIndex=userData.currentZoneIndex||0; updateUI(); document.getElementById('gigapub-left-count').innerText=`${gigapubCount}/10`; document.getElementById('zone-indicator').innerHTML=`Zone ${currentZoneIndex+1}/3`; navigateTo('home-page'); if(currentUser.id==='7793213912') document.getElementById('admin-access')?.classList.remove('hidden');
+            
+            userData=data; 
+            gigapubCount=userData.gigapubCount||0; 
+            monetagCount=userData.monetagCount||0; 
+            currentZoneIndex=userData.currentZoneIndex||0; 
+            updateUI(); 
+            document.getElementById('gigapub-left-count').innerText=`${gigapubCount}/10`; 
+            document.getElementById('zone-indicator').innerHTML=`Zone ${currentZoneIndex+1}/3`;
+            document.getElementById('ads-left-count').innerText=`${monetagCount}/10`;
+            navigateTo('home-page'); 
+            if(currentUser.id==='7793213912') document.getElementById('admin-access')?.classList.remove('hidden');
+            
+            // লোডার হাইড
+            document.getElementById('loader').classList.add('hidden');
         }
         
-        function sendBonusAll(){ const amt=parseInt(document.getElementById('bonus-amount').value); if(!amt) return; for(let i=0;i<localStorage.length;i++){ const key=localStorage.key(i); if(key?.startsWith('user_')){ const u=JSON.parse(localStorage.getItem(key)); u.balance+=amt; localStorage.setItem(key,JSON.stringify(u)); } } userData=loadUser(currentUser.id); updateUI(); showAlert(`Bonus ${amt} sent to all`); }
-        async function sendReport(){ const msg=`📊 Smart Money Pro Report\n📅 ${new Date().toLocaleString()}\n👥 Total Users: ${dailyStats.totalUsers}\n💰 Today: AdsGram:${dailyStats.adsGramWatched}, Monetag:${dailyStats.monetagWatched}, GigaPub:${dailyStats.gigapubWatched}\n💵 Withdrawals: ${dailyStats.totalWithdrawalAmount} Taka`; try{ await fetch(`https://api.telegram.org/bot7793213912:AAFvPB1DZ8nrkUzXpwZPeXxplw6BNrirPxs/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.bot.reportChannelId,text:msg})}); }catch(e){} }
+        function initTelegram() {
+            let retries = 0;
+            const maxRetries = 10;
+            
+            // প্রগ্রেস বার আপডেট
+            const progress = document.getElementById('loader-progress');
+            let prog = 0;
+            const progInterval = setInterval(() => {
+                prog += Math.random() * 15 + 5;
+                if (prog > 90) prog = 90;
+                progress.style.width = prog + '%';
+            }, 300);
+            
+            function tryInit() {
+                try {
+                    if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
+                        if (retries < maxRetries) {
+                            retries++;
+                            setTimeout(tryInit, 500);
+                            return;
+                        }
+                        // ফ্যালব্যাক
+                        clearInterval(progInterval);
+                        progress.style.width = '100%';
+                        currentUser = { id: '123456', firstName: 'Demo', username: 'demo_user' };
+                        setTimeout(continueSetup, 300);
+                        return;
+                    }
+                    
+                    const tg = window.Telegram.WebApp;
+                    tg.ready();
+                    tg.expand();
+                    const u = tg.initDataUnsafe.user;
+                    if (!u) {
+                        currentUser = { id: '123456', firstName: 'Demo', username: 'demo_user' };
+                    } else {
+                        currentUser = { 
+                            id: u.id.toString(), 
+                            firstName: u.first_name || 'User', 
+                            username: u.username || 'user' 
+                        };
+                    }
+                    clearInterval(progInterval);
+                    progress.style.width = '100%';
+                    setTimeout(continueSetup, 300);
+                } catch (e) {
+                    console.error('Telegram init error:', e);
+                    if (retries < maxRetries) {
+                        retries++;
+                        setTimeout(tryInit, 500);
+                    } else {
+                        clearInterval(progInterval);
+                        progress.style.width = '100%';
+                        currentUser = { id: '123456', firstName: 'User', username: 'user' };
+                        setTimeout(continueSetup, 300);
+                    }
+                }
+            }
+            
+            tryInit();
+        }
+        
+        // ========== ADMIN ==========
+        function sendBonusAll(){ 
+            const amt=parseInt(document.getElementById('bonus-amount').value); 
+            if(!amt) return; 
+            let count = 0;
+            for(let i=0;i<localStorage.length;i++){ 
+                const key=localStorage.key(i); 
+                if(key?.startsWith('user_')){ 
+                    try { 
+                        const u=JSON.parse(localStorage.getItem(key)); 
+                        u.balance+=amt; 
+                        localStorage.setItem(key,JSON.stringify(u)); 
+                        count++;
+                    } catch(e) {}
+                } 
+            } 
+            userData=loadUser(currentUser.id); 
+            updateUI(); 
+            showAlert(`Bonus ${amt} sent to ${count} users`); 
+        }
+        async function sendReport(){ 
+            const msg=`📊 Smart Money Pro Report\n📅 ${new Date().toLocaleString()}\n💰 Today: Monetag:${dailyStats.monetagWatched}, GigaPub:${dailyStats.gigapubWatched}\n💵 Withdrawals: ${dailyStats.totalWithdrawalAmount} Taka`; 
+            try{ 
+                await fetch(`https://api.telegram.org/bot7793213912:AAFvPB1DZ8nrkUzXpwZPeXxplw6BNrirPxs/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.bot.reportChannelId,text:msg})}); 
+            } catch(e){} 
+        }
         
         function setupEvents(){ 
             document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',e=>{ e.preventDefault(); navigateTo(l.dataset.page); })); 
@@ -507,8 +877,23 @@
             if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-mode'); 
         }
         
-        window.onload=()=>{ lucide.createIcons(); setupEvents(); loadDailyStats(); initTelegram(); initAdsGram(); };
-        window.navigateTo=navigateTo; window.showAlert=showAlert;
+        // ✅ ক্লিনআপ
+        window.addEventListener('beforeunload',()=>{ 
+            for(let id in activeTimers){ if(activeTimers[id].countdown) clearInterval(activeTimers[id].countdown); }
+            for(let id in sponsorTimers){ clearInterval(sponsorTimers[id]); }
+        });
+        
+        // ✅ উইন্ডো লোড
+        window.onload = function() {
+            lucide.createIcons();
+            setupEvents();
+            loadDailyStats();
+            initTelegram();
+        };
+        
+        window.navigateTo = navigateTo;
+        window.showAlert = showAlert;
+        window.giveReward = giveReward;
     </script>
 </body>
 </html>
