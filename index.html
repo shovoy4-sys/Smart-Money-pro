@@ -13,6 +13,7 @@
     <script src='//libtl.com/sdk.js' data-zone='9500387' data-sdk='show_9500387' async></script>
     <script src='//libtl.com/sdk.js' data-zone='9715370' data-sdk='show_9715370' async></script>
     <script src="https://ad.gigapub.tech/script?id=6316" async></script>
+    <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="446880"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -260,6 +261,7 @@
                     <div class="flex justify-between items-center mb-3"><h2 class="font-bold text-xl">ডেইলি আয়</h2><span class="text-xs bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">বাকি অ্যাড: <span id="ads-left-count">0/10</span></span></div>
                     <div class="space-y-3">
                         <!-- Adsgram সরানো হয়েছে -->
+                        <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">⚡</span><div><h3 class="font-bold">OnClicka অ্যাড</h3><p class="text-xs text-gray-500">আয় করুন ৳১০</p><p class="text-[10px]">আজকে: <span id="onclicka-left-count">0/10</span></p></div></div><button id="onclicka-ad-btn" class="btn-premium px-5 py-2 rounded-full text-white text-sm font-semibold shadow-md">দেখুন</button></div>
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">🚀</span><div><h3 class="font-bold">গিগাপাব অ্যাড</h3><p class="text-xs text-gray-500">আয় করুন ৳১০</p><p class="text-[10px]">আজকে: <span id="gigapub-left-count">0/10</span></p></div></div><button id="gigapub-ad-btn" class="btn-premium px-5 py-2 rounded-full text-white text-sm font-semibold shadow-md">দেখুন</button></div>
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">🎯</span><div><h3 class="font-bold">মনিটাগ অ্যাড</h3><p class="text-xs text-gray-500">আয় করুন ৳১০</p><span id="zone-indicator" class="text-[10px] bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded-full">জোন ১/৩</span></div></div><button id="monetag-ad-btn" class="btn-premium px-5 py-2 rounded-full text-white text-sm font-semibold">দেখুন</button></div>
                         <div class="card-modern p-4 flex justify-between items-center"><div class="flex gap-3"><span class="text-3xl">💼</span><div><h3 class="font-bold">ডেইলি জব</h3><p class="text-xs text-gray-500">২০টি জব • প্রতিটি ৳১৫</p><p class="text-[10px] text-orange-500 font-medium">⏱️ ১৫ সেকেন্ড টাইমার → অটো রিওয়ার্ড</p></div></div><button class="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-semibold dark:bg-white dark:text-black" onclick="navigateTo('daily-jobs-page')">শুরু করুন →</button></div>
@@ -423,9 +425,10 @@
     <script>
         // ========== CONFIG (Adsgram বাদ) ==========
         const CONFIG = {
-            app: { minWithdrawal: 2000, dailyAdLimit: { monetag: 30, gigapub: 10 }, adReward: 10, dailyJobReward: 15, welcomeBonus: 100, sponsorBonus: 20 },
+            app: { minWithdrawal: 2000, dailyAdLimit: { monetag: 30, gigapub: 10, onclicka: 10 }, adReward: 10, dailyJobReward: 15, welcomeBonus: 100, sponsorBonus: 20 },
             monetag: { enabled: true, zones: ['9730885', '9500387', '9715370'] },
             gigapub: { enabled: true },
+            onclicka: { enabled: true, admpid: '446880', showDelaySeconds: 5 },
             social: { telegram: "https://t.me/+tLB334Ko71tjY2Y1" },
             bot: { adminChatId: "7793213912", reportChannelId: "-1003331749273" },
             support: { telegraphUrl: "https://t.me/smartmoneypro_bot" },
@@ -445,7 +448,7 @@
             }
         };
 
-        let currentUser=null, userData=null, gigapubCount=0, monetagCount=0, currentZoneIndex=0, isGigaPubShowing=false, isMonetagShowing=false;
+        let currentUser=null, userData=null, gigapubCount=0, monetagCount=0, onclickaCount=0, currentZoneIndex=0, isGigaPubShowing=false, isMonetagShowing=false, isOnclickaShowing=false;
         let activeTimers = {};
         let sponsorTimers = {};
         let adsGramRetries = 0;
@@ -646,6 +649,47 @@
         }
         
         // ========== ADS ==========
+        // OnClicka এর data-admpid স্ক্রিপ্টটি পুরো পেজের যেকোনো ক্লিকের সাথে অটোমেটিক বাইন্ড হয়ে যায় এবং
+        // নেটওয়ার্কের নিজস্ব frequency capping অনুযায়ী অ্যাড (পপআন্ডার/নেটিভ) শো করায় — তাই GigaPub/Monetag এর
+        // মতো এখানে কোনো Promise-ভিত্তিক show() কলব্যাক নেই। বাটনে ক্লিক করা মাত্রই স্ক্রিপ্ট অ্যাড ট্রিগার করে,
+        // আমরা শুধু একটা ছোট টাইমার দেখিয়ে (যেন ইউজার বুঝতে পারে অ্যাড লোড হচ্ছে) তারপর রিওয়ার্ড দিচ্ছি।
+        function claimOnclickaReward(){
+            if(isOnclickaShowing) return;
+            const today=new Date().toISOString().split('T')[0];
+            if(onclickaCount>=CONFIG.app.dailyAdLimit.onclicka) return showAlert(`দৈনিক সীমা ১০/১০`);
+            if(typeof window.onclckmn==='undefined' && typeof window.__onclckLoaded==='undefined'){
+                // স্ক্রিপ্ট এখনও লোড না হলেও ক্লিকটি নেটওয়ার্কের গ্লোবাল লিসেনার ধরতে পারে, তাই আটকাচ্ছি না
+            }
+            isOnclickaShowing=true;
+            const btn=document.getElementById('onclicka-ad-btn');
+            btn.disabled=true;
+            btn.classList.add('timer-active-btn');
+            let secondsLeft=CONFIG.onclicka.showDelaySeconds||5;
+            btn.innerText=`⏳ ${secondsLeft}স`;
+            const countdown=setInterval(()=>{
+                secondsLeft--;
+                if(secondsLeft>0){
+                    btn.innerText=`⏳ ${secondsLeft}স`;
+                } else {
+                    clearInterval(countdown);
+                    onclickaCount++;
+                    userData.onclickaCount=onclickaCount;
+                    userData.lastOnclickaDate=today;
+                    userData.balance+=CONFIG.app.adReward;
+                    dailyStats.onclickaWatched=(dailyStats.onclickaWatched||0)+1;
+                    saveUser(userData);
+                    saveDailyStats();
+                    updateUI();
+                    document.getElementById('onclicka-left-count').innerText=`${onclickaCount}/10`;
+                    giveReward(CONFIG.app.adReward, 'OnClicka অ্যাড দেখা হয়েছে!');
+                    isOnclickaShowing=false;
+                    btn.innerText='দেখুন';
+                    btn.disabled=false;
+                    btn.classList.remove('timer-active-btn');
+                }
+            },1000);
+        }
+        
         async function claimGigaPubReward(){ 
             if(isGigaPubShowing) return; 
             const today=new Date().toISOString().split('T')[0]; 
@@ -741,7 +785,7 @@
             const isNew = !data;
             
             if(isNew){ 
-                data={ uid:currentUser.id, name:currentUser.firstName, username:currentUser.username, balance:CONFIG.app.welcomeBonus, adsGramCount:0, monetagCount:0, gigapubCount:0, lastAdsGramDate:today, lastMonetagDate:today, lastGigaPubDate:today, sponsorCount:0, currentZoneIndex:0, welcomeBonusClaimed:true, createdAt:new Date().toISOString() }; 
+                data={ uid:currentUser.id, name:currentUser.firstName, username:currentUser.username, balance:CONFIG.app.welcomeBonus, adsGramCount:0, monetagCount:0, gigapubCount:0, onclickaCount:0, lastAdsGramDate:today, lastMonetagDate:today, lastGigaPubDate:today, lastOnclickaDate:today, sponsorCount:0, currentZoneIndex:0, welcomeBonusClaimed:true, createdAt:new Date().toISOString() }; 
                 saveUser(data); 
                 dailyStats.newUsers++; 
                 saveDailyStats(); 
@@ -755,15 +799,18 @@
             } else { 
                 if(data.lastMonetagDate!==today){ data.monetagCount=0; data.lastMonetagDate=today; data.currentZoneIndex=0; } 
                 if(data.lastGigaPubDate!==today){ data.gigapubCount=0; data.lastGigaPubDate=today; } 
+                if(data.lastOnclickaDate!==today){ data.onclickaCount=0; data.lastOnclickaDate=today; } 
                 saveUser(data); 
             }
             
             userData=data; 
             gigapubCount=userData.gigapubCount||0; 
             monetagCount=userData.monetagCount||0; 
+            onclickaCount=userData.onclickaCount||0; 
             currentZoneIndex=userData.currentZoneIndex||0; 
             updateUI(); 
             document.getElementById('gigapub-left-count').innerText=`${gigapubCount}/10`; 
+            document.getElementById('onclicka-left-count').innerText=`${onclickaCount}/10`; 
             document.getElementById('zone-indicator').innerHTML=`জোন ${currentZoneIndex+1}/৩`;
             document.getElementById('ads-left-count').innerText=`${monetagCount}/10`;
             navigateTo('home-page'); 
@@ -856,7 +903,7 @@
             showAlert(`${count} জন ইউজারকে ${amt} টাকা বোনাস পাঠানো হয়েছে`); 
         }
         async function sendReport(){ 
-            const msg=`📊 Smart Money Pro Report\n📅 ${new Date().toLocaleString()}\n💰 Today: Monetag:${dailyStats.monetagWatched}, GigaPub:${dailyStats.gigapubWatched}\n💵 Withdrawals: ${dailyStats.totalWithdrawalAmount} Taka`; 
+            const msg=`📊 Smart Money Pro Report\n📅 ${new Date().toLocaleString()}\n💰 Today: Monetag:${dailyStats.monetagWatched}, GigaPub:${dailyStats.gigapubWatched}, OnClicka:${dailyStats.onclickaWatched||0}\n💵 Withdrawals: ${dailyStats.totalWithdrawalAmount} Taka`; 
             try{ 
                 await fetch(`https://api.telegram.org/bot7793213912:AAFvPB1DZ8nrkUzXpwZPeXxplw6BNrirPxs/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.bot.reportChannelId,text:msg})}); 
             } catch(e){} 
@@ -864,6 +911,7 @@
         
         function setupEvents(){ 
             document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',e=>{ e.preventDefault(); navigateTo(l.dataset.page); })); 
+            document.getElementById('onclicka-ad-btn')?.addEventListener('click',claimOnclickaReward); 
             document.getElementById('gigapub-ad-btn')?.addEventListener('click',claimGigaPubReward); 
             document.getElementById('monetag-ad-btn')?.addEventListener('click',claimMonetagReward); 
             document.getElementById('withdraw-btn')?.addEventListener('click',handleWithdrawal); 
